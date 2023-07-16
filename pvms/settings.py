@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from datetime import timedelta
+import os
+import dj_database_url
 from rest_framework.settings import api_settings
 from pathlib import Path
 
@@ -25,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-@w$16!f(_8ymgtb5z6s$b+o68&k56s_2u@pl^92r126w2r+t@j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -106,11 +108,15 @@ WSGI_APPLICATION = 'pvms.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    } if DEBUG else dj_database_url.config(
+        default=os.environ.get('DATABASE_URL', default='postgres://petronas_user:4EYoOzWP41c3yErWrdfnWtHQSwbzSvSW@dpg-cipmapl9aq0dcpqu1avg-a.singapore-postgres.render.com/petronas'),
+        conn_max_age=600
+    ), 
 }
 
 
