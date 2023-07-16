@@ -8,6 +8,7 @@ class UserSerializer(serializers.Serializer):
     phone = serializers.CharField()
     password = serializers.CharField(write_only=True)
     google_token = serializers.JSONField(read_only=True)
+    is_staff = serializers.BooleanField(read_only=True)
 
 class HostSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)

@@ -98,6 +98,14 @@ def login(request):
 
     user = serializers.UserSerializer(user)
 
-    return Response(data={'user': user.data, 'token': token,}, status=status.HTTP_201_CREATED)
+    return Response(data={'user': user.data, 'token': token,}, status=status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+@authentication_classes([CustomTokenAuthentication])
+def user(request):
+    user = request.user
+
+    serializer = serializers.UserSerializer(user)
+
+    return Response(data=serializer.data, status=status.HTTP_200_OK)
