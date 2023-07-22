@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 import io
 from tkinter import Image
 from django.shortcuts import render
@@ -47,10 +47,11 @@ class MeetingView(APIView):
         )
 
         attendees = []
+        invitations = []
 
         calendar_service = build('calendar', 'v3', credentials=creds)
         email_service = build('gmail', 'v1', credentials=creds)
- 
+
         for email in data['visitor_emails']:
             attendees.append({'email': email})
             invitation = Invitation.objects.create(
@@ -101,17 +102,41 @@ class MeetingView(APIView):
                 
                 print(send_message)
 
-        return Response(data=data, status=status.HTTP_201_CREATED);
+                invitations.append(invitation)
 
+        meeting_serializer = MeetingSerializer(meeting)
+        data = meeting_serializer.data
+        
+        invitation_serializer = InvitationSerializer(invitations, many=True)
+        
+        data['invitations'] = invitation_serializer.data
+        
+        return Response(data=data, status=status.HTTP_201_CREATED)
 
 
     def get(self, request):
+
         
-        meetings = Meeting.objects.all()
+        current_date = date.today()
+        future_date = current_date + timedelta(days=7)
+        
+        meetings = Meeting.objects.filter(start_date__range=(current_date, future_date),).all()
 
-        serializer = InvitationSerializer(meetings, many=True)
+        data = []
 
-        return Response(data=serializer.data, status=status.HTTP_200_OK);
+        for meeting in meetings:
+            invitations = Invitation.objects.filter(meeting=meeting)
+
+            invitations_serializer = InvitationSerializer(invitations, many=True)
+
+            meeting_serializer = MeetingSerializer(meeting)
+            m = meeting_serializer.data
+
+            m['invitations'] = invitations_serializer.data
+
+            data.append(m) 
+
+        return Response(data=data, status=status.HTTP_200_OK)
 
 
 class InvitationView(APIView):
@@ -141,8 +166,6 @@ class InvitationView(APIView):
         create_message = confirmed_email(invitation.visitor_email, invitation.host.email)
         send_message = (email_service.users().messages().send
                 (userId=invitation.host.email, body=create_message).execute())
-        
-        print(send_message)
 
         serializer = InvitationSerializer(invitation)
 
@@ -179,7 +202,7 @@ def generate_qr(request, id):
         return Response(data={'message':'Invitation ID not found'}, status=status.HTTP_404_NOT_FOUND)
     
     qr = QRCode()
-    qr.add_data(str(invitation.id)+str(invitation.meeting.id))
+    qr.add_data(str(invitation.id))
 
     im = qr.make_image()
 
@@ -188,3 +211,17 @@ def generate_qr(request, id):
     img_byte_arr = img_byte_arr.getvalue()
 
     return HttpResponse(img_byte_arr, content_type="image/png")
+
+class CheckIn(APIView):
+    authentication_classes = []
+
+    def post(self, request, id):
+        pass
+
+    def get(self, request, id):
+        
+        invitation = Invitation.objects.filter(id=id).first()
+
+        serializer = InvitationSerializer(invitation)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)

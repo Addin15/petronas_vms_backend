@@ -10,6 +10,7 @@ class Meeting(models.Model):
     end_date = models.DateTimeField()
     purpose = models.CharField(max_length=50)
     venue = models.TextField()
+    test = models.BooleanField(default=False)
 
 class Invitation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -1,1 +1,1 @@
-FRONTEND_HOST = 'http://localhost:4200';
+FRONTEND_HOST = 'https://petronas-392412.firebaseapp.com';
