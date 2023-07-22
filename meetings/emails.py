@@ -218,7 +218,7 @@ def confirmed_email(to:str, sender: str, invitation: Invitation):
                     <div class="text-sm text-[#808080] font-semibold mb-2" style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #808080;">SKIP THE QUEUE</div>
                     <div class="text-xl font-semibold mb-4" style="margin-bottom: 16px; font-size: 20px; font-weight: 600;">Show this QR at the lobby</div>
                     <div class="rounded-2xl" style="border-radius: 1rem;">
-                        <img class="h-72 rounded-xl" src="''' + settings.FE_HOST + '/api/invitations/' + str(invitation.id) + '/qr/' + '''" alt="qr" style="height: 288px; border-radius: 0.75rem;">
+                        <img class="h-72 rounded-xl" src="''' + 'https://petronas-vms.onrender.com/api/invitations/' + str(invitation.id) + '/qr/' + '''" alt="qr" style="height: 288px; border-radius: 0.75rem;">
                     </div>
                 </div>
                 <div class="mb-5 text-xl font-semibold" style="margin-bottom: 20px; font-size: 20px; font-weight: 600;">
