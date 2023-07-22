@@ -2,10 +2,11 @@ import base64
 from email.message import EmailMessage
 from email.mime.text import MIMEText
 
-from meetings.configs import FRONTEND_HOST
+from django.conf import settings
+from .models import Invitation
 
 
-def send_invitation(to: str, sender: str, id):
+def send_invitation(to: str, sender: str, invitation: Invitation):
     """Create a message for an email.
 
     Args:
@@ -18,7 +19,7 @@ def send_invitation(to: str, sender: str, id):
     An object containing a base64url encoded email object.
     """
 
-    register_link = FRONTEND_HOST + '/invitations/'+str(id)
+    register_link = settings.FE_HOST + '/invitations/'+str(invitation.id)
 
     content = '''
     <!DOCTYPE html>
@@ -31,7 +32,7 @@ def send_invitation(to: str, sender: str, id):
     </head>
 
     <body>
-        <div class="flex flex-col container mx-auto w-[35rem] border my-5 rounded-2xl px-8 py-5" style="margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; display: flex; width: 35rem; flex-direction: column; border-radius: 1rem; border-width: 1px; padding-left: 32px; padding-right: 32px; padding-top: 20px; padding-bottom: 20px;">
+        <div class="flex flex-col container mx-auto w-[35rem] border border-[#D8D8D8] my-5 rounded-2xl px-8 py-5" style="margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; display: flex; width: 35rem; flex-direction: column; border-radius: 1rem; border-width: 1px; border-color: #D8D8D8; padding-left: 32px; padding-right: 32px; padding-top: 20px; padding-bottom: 20px;">
             <div>
                 <svg width="60" viewBox="0 0 92 67" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_62_24455)">
@@ -57,9 +58,9 @@ def send_invitation(to: str, sender: str, id):
                     Meeting confirmed!.
                 </div>
                 <div class="mb-5 text-xl font-semibold" style="margin-bottom: 20px; font-size: 20px; font-weight: 600;">
-                    Product Roadmap Planning
+                    ''' + invitation.meeting.summary + '''
                 </div>
-                <div class="flex items-center pb-5 mb-2 border-b" style="margin-bottom: 8px; display: flex; align-items: center; border-bottom-width: 1px; padding-bottom: 20px;">
+                <div class="flex items-center pb-5 mb-2 border-b border-[#D8D8D8]" style="margin-bottom: 8px; display: flex; align-items: center; border-bottom-width: 1px; border-color: #D8D8D8; padding-bottom: 20px;">
                     <div class="w-[20] h-[20]" style="height: 20; width: 20;">
                         <svg class="mr-3" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
                             <g clip-path="url(#clip0_64_24482)">
@@ -75,11 +76,11 @@ def send_invitation(to: str, sender: str, id):
                     <div>
                         <div class="text-xs font-semibold text-[#808080]" style="font-size: 12px; font-weight: 600; color: #808080;">WHEN</div>
                         <div class="font-semibold" style="font-weight: 600;">
-                            Fri, 14 July 2023 at 3:30PM - 4:00PM (MYT)
+                            ''' + invitation.meeting.start_date.strftime("%b %d %Y at %H:%M:%S") + ' - ' + invitation.meeting.end_date.strftime("%H:%M:%S") + ''' (MYT)
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center pb-5 mb-2 border-b" style="margin-bottom: 8px; display: flex; align-items: center; border-bottom-width: 1px; padding-bottom: 20px;">
+                <div class="flex items-center pb-5 mb-2 border-b border-[#D8D8D8]" style="margin-bottom: 8px; display: flex; align-items: center; border-bottom-width: 1px; border-color: #D8D8D8; padding-bottom: 20px;">
                     <div class="w-[20] h-[20]" style="height: 20; width: 20;">
                         <svg class="mr-3" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
                             <path d="M9.99998 10.8333C11.3807 10.8333 12.5 9.714 12.5 8.33329C12.5 6.95258 11.3807 5.83329 9.99998 5.83329C8.61927 5.83329 7.49998 6.95258 7.49998 8.33329C7.49998 9.714 8.61927 10.8333 9.99998 10.8333Z" stroke="#758695" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -89,11 +90,10 @@ def send_invitation(to: str, sender: str, id):
                     <div>
                         <div class="text-xs font-semibold text-[#808080]" style="font-size: 12px; font-weight: 600; color: #808080;">WHERE</div>
                         <div class="font-semibold" style="font-weight: 600;">
-                            Meeting Room E
+                            ''' + invitation.meeting.venue.split(',')[0] + '''
                         </div>
                         <span>
-                            Tower 2, Level 7, Petronas Twin Tower, 405, Persiaran Petronas, Kuala Lumpur City Centre, 50088
-                            Kuala Lumpur
+                            ''' + invitation.meeting.venue.split(',').pop(0) + '''
                         </span>
                         <a href="#" class="block font-bold text-sm text-[#00A19C]" style="display: block; font-size: 14px; font-weight: 700; color: #00A19C;">
                             Get directions
@@ -112,14 +112,14 @@ def send_invitation(to: str, sender: str, id):
                         <div class="flex my-2" style="margin-top: 8px; margin-bottom: 8px; display: flex;">
                             <img class="rounded-full mr-3" height="68" width="68" src="https://nordicapis.com/wp-content/uploads/Profile-Pic-Circle-Grey-Large-1.png" alt="img" style="margin-right: 12px; border-radius: 9999px;">
                             <div>
-                                <div class="font-semibold mb-1" style="margin-bottom: 4px; font-weight: 600;">Pat Lee</div>
+                                <div class="font-semibold mb-1" style="margin-bottom: 4px; font-weight: 600;">''' + invitation.host.name + '''</div>
                                 <div class="text-sm mb-1" style="margin-bottom: 4px; font-size: 14px;">Your host will be notified <strong>automatically</strong> when you
                                     arrived</div>
                                 <div class="flex mb-1" style="margin-bottom: 4px; display: flex;">
                                     <svg class="mr-3" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
                                         <path d="M6.54216 7.24889C7.12216 8.4569 7.91281 9.58911 8.91413 10.5904C9.91544 11.5917 11.0476 12.3824 12.2557 12.9624C12.3596 13.0123 12.4115 13.0372 12.4773 13.0564C12.7109 13.1245 12.9978 13.0756 13.1956 12.9339C13.2513 12.894 13.2989 12.8464 13.3942 12.7511C13.6855 12.4598 13.8312 12.3141 13.9777 12.2189C14.5301 11.8597 15.2422 11.8597 15.7947 12.2189C15.9411 12.3141 16.0868 12.4598 16.3781 12.7511L16.5405 12.9135C16.9834 13.3564 17.2048 13.5778 17.3251 13.8157C17.5644 14.2886 17.5644 14.8472 17.3251 15.3201C17.2048 15.558 16.9834 15.7794 16.5405 16.2223L16.4092 16.3536C15.9678 16.795 15.7471 17.0157 15.4471 17.1842C15.1142 17.3712 14.5971 17.5057 14.2153 17.5045C13.8711 17.5035 13.636 17.4368 13.1656 17.3033C10.6378 16.5858 8.25246 15.2321 6.26248 13.2421C4.27249 11.2521 2.91877 8.86679 2.20129 6.33896C2.06778 5.86858 2.00103 5.6334 2.00001 5.28928C1.99887 4.90742 2.13334 4.39035 2.32036 4.05743C2.4889 3.7574 2.70957 3.53672 3.15092 3.09537L3.28229 2.96401C3.72516 2.52114 3.94659 2.29971 4.18441 2.17942C4.65738 1.94019 5.21593 1.94019 5.6889 2.17942C5.92671 2.29971 6.14815 2.52114 6.59102 2.96401L6.75341 3.1264C7.04475 3.41774 7.19042 3.56341 7.28565 3.70989C7.64482 4.2623 7.64482 4.97445 7.28565 5.52686C7.19042 5.67334 7.04475 5.81901 6.75341 6.11035C6.65815 6.20561 6.61052 6.25324 6.57065 6.30891C6.42897 6.50677 6.38006 6.79365 6.44816 7.02728C6.46732 7.09303 6.49227 7.14498 6.54216 7.24889Z" stroke="#00A19C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
-                                    <span class="text-sm font-bold text-[#00A19C]" style="font-size: 14px; font-weight: 700; color: #00A19C;">601281818181</span>
+                                    <span class="text-sm font-bold text-[#00A19C]" style="font-size: 14px; font-weight: 700; color: #00A19C;">''' + invitation.host.phone + '''</span>
                                 </div>
                             </div>
                         </div>
@@ -128,21 +128,21 @@ def send_invitation(to: str, sender: str, id):
                 <div class="rounded-xl bg-[#EBF7F6] p-5 text-center mb-5" style="margin-bottom: 20px; border-radius: 0.75rem; background-color: #EBF7F6; padding: 20px; text-align: center;">
                     <div class="font-bold text-xl mb-4" style="margin-bottom: 16px; font-size: 20px; font-weight: 700;">Before you arrive</div>
                     <div class="mb-4 text-sm" style="margin-bottom: 16px; font-size: 14px;">Pre-register and skip the queue — It only takes 30 seconds</div>
-                    <a type="button" href="'''+ register_link +'''" target="_blank" class="no-underline w-full text-white bg-[#00A19C] hover:bg-[#00A19C] font-bold rounded-md text-sm px-5 py-3.5 mr-auto dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none " style="margin-right: auto; width: 100%; border-radius: 0.375rem; background-color: #00A19C; padding-left: 20px; padding-right: 20px; padding-top: 14px; padding-bottom: 14px; font-size: 14px; font-weight: 700; color: #fff; text-decoration-line: none;">Pre-Register
+                    <a type="button" href="''' + register_link + '''" target="_blank" class="no-underline w-full text-white bg-[#00A19C] hover:bg-[#00A19C] font-bold rounded-md text-sm px-5 py-3.5 mr-auto dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none " style="margin-right: auto; width: 100%; border-radius: 0.375rem; background-color: #00A19C; padding-left: 20px; padding-right: 20px; padding-top: 14px; padding-bottom: 14px; font-size: 14px; font-weight: 700; color: #fff; text-decoration-line: none;">Pre-Register
                         Here</a>
                 </div>
                 <div class="font-bold text-xl mb-4" style="margin-bottom: 16px; font-size: 20px; font-weight: 700;">Things to know</div>
-                <div class="py-4 border-b" style="border-bottom-width: 1px; padding-top: 16px; padding-bottom: 16px;">
+                <div class="py-4 border-b border-[#D8D8D8]" style="border-bottom-width: 1px; border-color: #D8D8D8; padding-top: 16px; padding-bottom: 16px;">
                     <div class="text-sm font-semibold text-[#808080]" style="font-size: 14px; font-weight: 600; color: #808080;">DRESS CODE</div>
                     <div class="font-semibold" style="font-weight: 600;">Smart Casual. Strictly no shorts, collarless T-shirts, singlets, sports
                         attire, sports shoes or slippers at any time.</div>
                 </div>
-                <div class="py-4 border-b" style="border-bottom-width: 1px; padding-top: 16px; padding-bottom: 16px;">
+                <div class="py-4 border-b border-[#D8D8D8]" style="border-bottom-width: 1px; border-color: #D8D8D8; padding-top: 16px; padding-bottom: 16px;">
                     <div class="text-sm font-semibold text-[#808080]" style="font-size: 14px; font-weight: 600; color: #808080;">SAFETY BRIEFING</div>
                     <div class="font-semibold" style="font-weight: 600;">Watch the safety briefing <a href="#" class="
                             text-[#00A19C]" style="color: #00A19C;"><u>here</u></a></div>
                 </div>
-                <div class="py-4 border-b" style="border-bottom-width: 1px; padding-top: 16px; padding-bottom: 16px;">
+                <div class="py-4 border-b border-[#D8D8D8]" style="border-bottom-width: 1px; border-color: #D8D8D8; padding-top: 16px; padding-bottom: 16px;">
                     <div class="text-sm font-semibold text-[#808080]" style="font-size: 14px; font-weight: 600; color: #808080;">WI-FI DETAILS</div>
                     <div class="font-semibold" style="font-weight: 600;">Get your wi-fi pre-approved <a href="#" class="
                         text-[#00A19C]" style="color: #00A19C;"><u>here</u></a></div>
@@ -154,7 +154,11 @@ def send_invitation(to: str, sender: str, id):
                 </div>
             </div>
         </div>
+
     </body>
+
+
+
     </html>
     '''
 
@@ -172,7 +176,7 @@ def send_invitation(to: str, sender: str, id):
 
 
 
-def confirmed_email(to:str, sender: str):
+def confirmed_email(to:str, sender: str, invitation: Invitation):
 
     content = '''
     <!DOCTYPE html>
@@ -185,7 +189,7 @@ def confirmed_email(to:str, sender: str):
     </head>
 
     <body>
-        <div class="flex flex-col container mx-auto w-[35rem] border my-5 rounded-2xl px-8 py-5" style="margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; display: flex; width: 35rem; flex-direction: column; border-radius: 1rem; border-width: 1px; padding-left: 32px; padding-right: 32px; padding-top: 20px; padding-bottom: 20px;">
+        <div class="flex flex-col container mx-auto w-[35rem] border border-[#D8D8D8] my-5 rounded-2xl px-8 py-5" style="margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; display: flex; width: 35rem; flex-direction: column; border-radius: 1rem; border-width: 1px; border-color: #D8D8D8; padding-left: 32px; padding-right: 32px; padding-top: 20px; padding-bottom: 20px;">
             <div>
                 <svg width="60" viewBox="0 0 92 67" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_62_24455)">
@@ -214,13 +218,13 @@ def confirmed_email(to:str, sender: str):
                     <div class="text-sm text-[#808080] font-semibold mb-2" style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #808080;">SKIP THE QUEUE</div>
                     <div class="text-xl font-semibold mb-4" style="margin-bottom: 16px; font-size: 20px; font-weight: 600;">Show this QR at the lobby</div>
                     <div class="rounded-2xl" style="border-radius: 1rem;">
-                        <img class="h-72 rounded-xl" src="http://127.0.0.1:8000/api/invitations/cfe1f13f37234d379179ffa4f7f081b3/qr/" alt="qr" style="height: 288px; border-radius: 0.75rem;">
+                        <img class="h-72 rounded-xl" src="''' + settings.FE_HOST + '/api/invitations/' + str(invitation.id) + '/qr/' + '''" alt="qr" style="height: 288px; border-radius: 0.75rem;">
                     </div>
                 </div>
                 <div class="mb-5 text-xl font-semibold" style="margin-bottom: 20px; font-size: 20px; font-weight: 600;">
-                    Product Roadmap Planning
+                    ''' + invitation.meeting.summary + '''
                 </div>
-                <div class="flex items-center pb-5 mb-2 border-b" style="margin-bottom: 8px; display: flex; align-items: center; border-bottom-width: 1px; padding-bottom: 20px;">
+                <div class="flex items-center pb-5 mb-2 border-b border-[#D8D8D8]" style="margin-bottom: 8px; display: flex; align-items: center; border-bottom-width: 1px; border-color: #D8D8D8; padding-bottom: 20px;">
                     <div class="w-[20] h-[20]" style="height: 20; width: 20;">
                         <svg class="mr-3" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
                             <g clip-path="url(#clip0_64_24482)">
@@ -236,11 +240,11 @@ def confirmed_email(to:str, sender: str):
                     <div>
                         <div class="text-xs font-semibold text-[#808080]" style="font-size: 12px; font-weight: 600; color: #808080;">WHEN</div>
                         <div class="font-semibold" style="font-weight: 600;">
-                            Fri, 14 July 2023 at 3:30PM - 4:00PM (MYT)
+                            ''' + invitation.meeting.start_date.strftime("%b %d %Y at %H:%M:%S") + ' - ' + invitation.meeting.end_date.strftime("%H:%M:%S") + ''' (MYT)
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center pb-5 mb-2 border-b" style="margin-bottom: 8px; display: flex; align-items: center; border-bottom-width: 1px; padding-bottom: 20px;">
+                <div class="flex items-center pb-5 mb-2 border-b border-[#D8D8D8]" style="margin-bottom: 8px; display: flex; align-items: center; border-bottom-width: 1px; border-color: #D8D8D8; padding-bottom: 20px;">
                     <div class="w-[20] h-[20]" style="height: 20; width: 20;">
                         <svg class="mr-3" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
                             <path d="M9.99998 10.8333C11.3807 10.8333 12.5 9.714 12.5 8.33329C12.5 6.95258 11.3807 5.83329 9.99998 5.83329C8.61927 5.83329 7.49998 6.95258 7.49998 8.33329C7.49998 9.714 8.61927 10.8333 9.99998 10.8333Z" stroke="#758695" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -250,11 +254,10 @@ def confirmed_email(to:str, sender: str):
                     <div>
                         <div class="text-xs font-semibold text-[#808080]" style="font-size: 12px; font-weight: 600; color: #808080;">WHERE</div>
                         <div class="font-semibold" style="font-weight: 600;">
-                            Meeting Room E
+                            ''' + invitation.meeting.venue.split(',')[0] + '''
                         </div>
                         <span>
-                            Tower 2, Level 7, Petronas Twin Tower, 405, Persiaran Petronas, Kuala Lumpur City Centre, 50088
-                            Kuala Lumpur
+                            ''' + invitation.meeting.venue.split(',').pop(0) + '''
                         </span>
                         <a href="#" class="block font-bold text-sm text-[#00A19C]" style="display: block; font-size: 14px; font-weight: 700; color: #00A19C;">
                             Get directions
@@ -273,31 +276,31 @@ def confirmed_email(to:str, sender: str):
                         <div class="flex my-2" style="margin-top: 8px; margin-bottom: 8px; display: flex;">
                             <img class="rounded-full mr-3 object-scale-down" width="50" src="https://nordicapis.com/wp-content/uploads/Profile-Pic-Circle-Grey-Large-1.png" alt="img" style="margin-right: 12px; border-radius: 9999px; -o-object-fit: scale-down; object-fit: scale-down;">
                             <div>
-                                <div class="font-semibold mb-1" style="margin-bottom: 4px; font-weight: 600;">Pat Lee</div>
+                                <div class="font-semibold mb-1" style="margin-bottom: 4px; font-weight: 600;">''' + invitation.host.name + '''</div>
                                 <div class="text-sm mb-1" style="margin-bottom: 4px; font-size: 14px;">Your host will be notified <strong>automatically</strong> when you
                                     arrived</div>
                                 <div class="flex mb-1" style="margin-bottom: 4px; display: flex;">
                                     <svg class="mr-3" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 12px;">
                                         <path d="M6.54216 7.24889C7.12216 8.4569 7.91281 9.58911 8.91413 10.5904C9.91544 11.5917 11.0476 12.3824 12.2557 12.9624C12.3596 13.0123 12.4115 13.0372 12.4773 13.0564C12.7109 13.1245 12.9978 13.0756 13.1956 12.9339C13.2513 12.894 13.2989 12.8464 13.3942 12.7511C13.6855 12.4598 13.8312 12.3141 13.9777 12.2189C14.5301 11.8597 15.2422 11.8597 15.7947 12.2189C15.9411 12.3141 16.0868 12.4598 16.3781 12.7511L16.5405 12.9135C16.9834 13.3564 17.2048 13.5778 17.3251 13.8157C17.5644 14.2886 17.5644 14.8472 17.3251 15.3201C17.2048 15.558 16.9834 15.7794 16.5405 16.2223L16.4092 16.3536C15.9678 16.795 15.7471 17.0157 15.4471 17.1842C15.1142 17.3712 14.5971 17.5057 14.2153 17.5045C13.8711 17.5035 13.636 17.4368 13.1656 17.3033C10.6378 16.5858 8.25246 15.2321 6.26248 13.2421C4.27249 11.2521 2.91877 8.86679 2.20129 6.33896C2.06778 5.86858 2.00103 5.6334 2.00001 5.28928C1.99887 4.90742 2.13334 4.39035 2.32036 4.05743C2.4889 3.7574 2.70957 3.53672 3.15092 3.09537L3.28229 2.96401C3.72516 2.52114 3.94659 2.29971 4.18441 2.17942C4.65738 1.94019 5.21593 1.94019 5.6889 2.17942C5.92671 2.29971 6.14815 2.52114 6.59102 2.96401L6.75341 3.1264C7.04475 3.41774 7.19042 3.56341 7.28565 3.70989C7.64482 4.2623 7.64482 4.97445 7.28565 5.52686C7.19042 5.67334 7.04475 5.81901 6.75341 6.11035C6.65815 6.20561 6.61052 6.25324 6.57065 6.30891C6.42897 6.50677 6.38006 6.79365 6.44816 7.02728C6.46732 7.09303 6.49227 7.14498 6.54216 7.24889Z" stroke="#00A19C" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
-                                    <span class="text-sm font-bold text-[#00A19C]" style="font-size: 14px; font-weight: 700; color: #00A19C;">601281818181</span>
+                                    <span class="text-sm font-bold text-[#00A19C]" style="font-size: 14px; font-weight: 700; color: #00A19C;">''' + invitation.host.phone + '''</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="font-semibold text-xl mb-4" style="margin-bottom: 16px; font-size: 20px; font-weight: 600;">Things to know</div>
-                <div class="py-4 border-b" style="border-bottom-width: 1px; padding-top: 16px; padding-bottom: 16px;">
+                <div class="py-4 border-b border-[#D8D8D8]" style="border-bottom-width: 1px; border-color: #D8D8D8; padding-top: 16px; padding-bottom: 16px;">
                     <div class="text-sm font-semibold text-[#808080]" style="font-size: 14px; font-weight: 600; color: #808080;">DRESS CODE</div>
                     <div class="font-semibold" style="font-weight: 600;">Smart Casual. Strictly no shorts, collarless T-shirts, singlets, sports
                         attire, sports shoes or slippers at any time.</div>
                 </div>
-                <div class="py-4 border-b" style="border-bottom-width: 1px; padding-top: 16px; padding-bottom: 16px;">
+                <div class="py-4 border-b border-[#D8D8D8]" style="border-bottom-width: 1px; border-color: #D8D8D8; padding-top: 16px; padding-bottom: 16px;">
                     <div class="text-sm font-semibold text-[#808080]" style="font-size: 14px; font-weight: 600; color: #808080;">SAFETY BRIEFING</div>
                     <div class="font-semibold" style="font-weight: 600;">Watch the safety briefing <a href="#" class="
                             text-[#00A19C]" style="color: #00A19C;"><u>here</u></a></div>
                 </div>
-                <div class="py-4 border-b" style="border-bottom-width: 1px; padding-top: 16px; padding-bottom: 16px;">
+                <div class="py-4 border-b border-[#D8D8D8]" style="border-bottom-width: 1px; border-color: #D8D8D8; padding-top: 16px; padding-bottom: 16px;">
                     <div class="text-sm font-semibold text-[#808080]" style="font-size: 14px; font-weight: 600; color: #808080;">WI-FI DETAILS</div>
                     <div class="font-semibold" style="font-weight: 600;">Get your wi-fi pre-approved <a href="#" class="
                         text-[#00A19C]" style="color: #00A19C;"><u>here</u></a></div>

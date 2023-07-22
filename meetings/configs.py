@@ -1,1 +1,0 @@
-FRONTEND_HOST = 'https://petronas-392412.firebaseapp.com';

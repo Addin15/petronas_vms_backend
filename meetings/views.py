@@ -94,7 +94,7 @@ class MeetingView(APIView):
 
                 # Send email the link for pre-reg
 
-                create_message = send_invitation(email, request.user.email, invitation.id)
+                create_message = send_invitation(email, request.user.email, invitation)
 
 
                 send_message = (email_service.users().messages().send
@@ -147,11 +147,15 @@ class InvitationView(APIView):
 
         if data.get('visitor_nric') == None:
             return Response(data={'message':'NRIC not provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if data.get('visitor_name') == None:
+            return Response(data={'message':'Name not provided'}, status=status.HTTP_400_BAD_REQUEST)
 
         # CAN CROSS CHECK THE NRIC HERE
 
         invitation = Invitation.objects.filter(id=id).first()
         invitation.visitor_nric = data['visitor_nric']
+        invitation.visitor_name = data['visitor_name']
         invitation.is_preregistered = True
         invitation.save()
 
@@ -163,7 +167,7 @@ class InvitationView(APIView):
         creds = Credentials.from_authorized_user_info(goauth, SCOPES)
 
         email_service = build('gmail', 'v1', credentials=creds)
-        create_message = confirmed_email(invitation.visitor_email, invitation.host.email)
+        create_message = confirmed_email(invitation.visitor_email, invitation.host.email, invitation)
         send_message = (email_service.users().messages().send
                 (userId=invitation.host.email, body=create_message).execute())
 

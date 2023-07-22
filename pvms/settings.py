@@ -164,3 +164,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 
 APPEND_SLASH=False
+
+FE_HOST = 'http://localhost:4200' if DEBUG else 'https://petronas-392412.firebaseapp.com'

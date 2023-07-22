@@ -4,6 +4,7 @@ from users.models import User
 
 # Create your models here.
 class Meeting(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     summary = models.CharField(max_length=100)
     description = models.TextField()
     start_date = models.DateTimeField()
