@@ -152,6 +152,7 @@ class InvitationView(APIView):
             return Response(data={'message':'Name not provided'}, status=status.HTTP_400_BAD_REQUEST)
 
         # CAN CROSS CHECK THE NRIC HERE
+        
 
         invitation = Invitation.objects.filter(id=id).first()
         invitation.visitor_nric = data['visitor_nric']

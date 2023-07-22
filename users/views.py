@@ -39,7 +39,8 @@ def google_authorize(request):
                 'credentials.json', SCOPES)
             try:
                 creds = flow.run_local_server(port=5000,timeout_seconds=15)
-            except:
+            except Exception as e:
+                print(e)
                 return Response(status=status.HTTP_412_PRECONDITION_FAILED)
 
         # Save the credentials for the next run
