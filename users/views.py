@@ -1,4 +1,5 @@
 import json
+from django.conf import settings
 from django.shortcuts import render
 from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
@@ -38,19 +39,12 @@ def google_authorize(request):
             flow = InstalledAppFlow.from_client_secrets_file(
                 'credentials.json', SCOPES)
             try:
-                creds = flow.run_local_server(port=5000,timeout_seconds=15)
+                flow.redirect_uri = settings.FE_HOST + '/redirect/'
+                auth_url = flow.authorization_url()
+                return Response(data={'auth_url': auth_url[0]}, status=status.HTTP_200_OK)
             except Exception as e:
                 print(e)
                 return Response(status=status.HTTP_412_PRECONDITION_FAILED)
-
-        # Save the credentials for the next run
-        user.google_token = json.loads(creds.to_json())
-        user.save()
-
-    goauth = user.google_token
-
-    if goauth:
-        return Response()
     else:
         return Response(status=status.HTTP_412_PRECONDITION_FAILED)
     
@@ -110,3 +104,27 @@ def user(request):
     serializer = serializers.UserSerializer(user)
 
     return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@authentication_classes([CustomTokenAuthentication])
+def redirect_google(request):
+    try:
+        serializer = serializers.RedirectSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        flow = InstalledAppFlow.from_client_secrets_file(
+                    'credentials.json', SCOPES)
+        
+        flow.redirect_uri = settings.FE_HOST + '/redirect/'
+        creds = flow.fetch_token(code=data['code'])
+
+        user = request.user
+        user.google_token = json.dumps(creds)
+        user.save()
+    except Exception as e:
+        print(e)
+        return Response(status=status.HTTP_412_PRECONDITION_FAILED)
+    
+    return Response(data={'message': 'success'}, status=status.HTTP_200_OK)

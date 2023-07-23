@@ -21,3 +21,6 @@ class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
 
+class RedirectSerializer(serializers.Serializer):
+    code = serializers.CharField()
+

@@ -11,4 +11,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view()),
     path('logout-all/', LogoutAllView.as_view()),
     path('google-authorize/', views.google_authorize),
+    path('redirect/', views.redirect_google)
 ]
