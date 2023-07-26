@@ -40,7 +40,7 @@ def google_authorize(request):
                 'credentials.json', SCOPES)
             try:
                 flow.redirect_uri = settings.FE_HOST + '/redirect/'
-                auth_url = flow.authorization_url()
+                auth_url = flow.authorization_url(prompt='consent')
                 return Response(data={'auth_url': auth_url[0]}, status=status.HTTP_200_OK)
             except Exception as e:
                 print(e)
@@ -121,6 +121,8 @@ def redirect_google(request):
         flow.fetch_token(code=data['code'])
 
         creds = flow.credentials
+
+        print(creds)
 
         user = request.user
         user.google_token = creds.to_json()

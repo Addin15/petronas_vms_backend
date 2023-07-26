@@ -1,3 +1,4 @@
+from django.utils import timezone
 import uuid
 from django.db import models
 from users.models import User
@@ -7,8 +8,8 @@ class Meeting(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     summary = models.CharField(max_length=100)
     description = models.TextField()
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(default=timezone.now)
     purpose = models.CharField(max_length=50)
     venue = models.TextField()
     test = models.BooleanField(default=False)

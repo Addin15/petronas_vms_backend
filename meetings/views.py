@@ -2,6 +2,8 @@ from datetime import date, datetime, timedelta
 import io
 from json import JSONEncoder
 import json
+import threading
+import time
 from tkinter import Image
 from django.shortcuts import render
 from django.http import HttpResponse, FileResponse
@@ -9,7 +11,7 @@ from rest_framework.decorators import APIView, api_view, authentication_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from meetings.emails import confirmed_email, send_invitation
+from meetings.emails import confirmed_email, send_invitation, thanks_email
 from users.authentication import CustomTokenAuthentication
 from .models import Meeting, Invitation
 from .serializers import InvitationSerializer, MeetingSerializer
@@ -27,95 +29,99 @@ class MeetingView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        try:
+            user = request.user
 
-        user = request.user
+            goauth = user.google_token
 
-        goauth = user.google_token
+            if not goauth:
+                return Response(data={'message': 'User is not authorized'}, status=status.HTTP_412_PRECONDITION_FAILED)
+            
+            creds = Credentials.from_authorized_user_info(json.loads(goauth), SCOPES)
 
-        if not goauth:
-            return Response(data={'message': 'User is not authorized'}, status=status.HTTP_412_PRECONDITION_FAILED)
-        
-        creds = Credentials.from_authorized_user_info(json.loads(goauth), SCOPES)
+            print('sin')
+            serializer = MeetingSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
 
-        serializer = MeetingSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        meeting = Meeting.objects.create(
-                summary=data['summary'],
-                description=data['description'],
-                start_date=data['start_date'],
-                end_date=data['end_date'],
-                purpose=data['purpose'],
-                venue=data['venue']
-        )
-
-        attendees = []
-        invitations = []
-
-        calendar_service = build('calendar', 'v3', credentials=creds)
-        email_service = build('gmail', 'v1', credentials=creds)
-
-        for email in data['visitor_emails']:
-            attendees.append({'email': email})
-            invitation = Invitation.objects.create(
-                host=request.user,
-                meeting=meeting,
-                visitor_email=email,
+            meeting = Meeting.objects.create(
+                    summary=data['summary'],
+                    description=data['description'],
+                    start_date=data['start_date'],
+                    end_date=data['end_date'],
+                    purpose=data['purpose'],
+                    venue=data['venue']
             )
 
-            kuala_lumpur=pytz.timezone('Asia/Kuala_Lumpur')
+            attendees = []
+            invitations = []
 
-            if invitation:
+            calendar_service = build('calendar', 'v3', credentials=creds)
+            email_service = build('gmail', 'v1', credentials=creds)
 
-                # Create calendar meeting
-                event = {
-                    'summary': data['summary'],
-                    'location': data['venue'],
-                    'description': data['description'],
-                    'start': {
-                        'dateTime': data['start_date'].astimezone(kuala_lumpur).isoformat(), #'2015-05-28T09:00:00-07:00'
-                        'timeZone': 'Asia/Kuala_Lumpur',
-                    },
-                    'end': {
-                        'dateTime': data['end_date'].astimezone(kuala_lumpur).isoformat(),
-                        'timeZone': 'Asia/Kuala_Lumpur',
-                    },
-                    # 'recurrence': [
-                    #     'RRULE:FREQ=DAILY;COUNT=2'
-                    # ],
-                    'attendees':attendees,
-                    'reminders': {
-                        'useDefault': True,
-                        # 'overrides': [
-                        # {'method': 'email', 'minutes': 24 * 60},
-                        # {'method': 'popup', 'minutes': 10},
+            for email in data['visitor_emails']:
+                attendees.append({'email': email})
+                invitation = Invitation.objects.create(
+                    host=request.user,
+                    meeting=meeting,
+                    visitor_email=email,
+                )
+
+                kuala_lumpur=pytz.timezone('Asia/Kuala_Lumpur')
+
+                if invitation:
+
+                    # Create calendar meeting
+                    event = {
+                        'summary': data['summary'],
+                        'location': data['venue'],
+                        'description': data['description'],
+                        'start': {
+                            'dateTime': data['start_date'].astimezone(kuala_lumpur).isoformat(), #'2015-05-28T09:00:00-07:00'
+                            'timeZone': 'Asia/Kuala_Lumpur',
+                        },
+                        'end': {
+                            'dateTime': data['end_date'].astimezone(kuala_lumpur).isoformat(),
+                            'timeZone': 'Asia/Kuala_Lumpur',
+                        },
+                        # 'recurrence': [
+                        #     'RRULE:FREQ=DAILY;COUNT=2'
                         # ],
-                    },
-                }
+                        'attendees':attendees,
+                        'reminders': {
+                            'useDefault': True,
+                            # 'overrides': [
+                            # {'method': 'email', 'minutes': 24 * 60},
+                            # {'method': 'popup', 'minutes': 10},
+                            # ],
+                        },
+                    }
 
-                event = calendar_service.events().insert(calendarId='primary', body=event).execute()
+                    event = calendar_service.events().insert(calendarId='primary', body=event).execute()
 
-                # Send email the link for pre-reg
+                    # Send email the link for pre-reg
 
-                create_message = send_invitation(email, request.user.email, invitation)
+                    create_message = send_invitation(email, request.user.email, invitation)
 
 
-                send_message = (email_service.users().messages().send
-                        (userId=request.user.email, body=create_message).execute())
-                
-                print(send_message)
+                    send_message = (email_service.users().messages().send
+                            (userId=request.user.email, body=create_message).execute())
+                    
+                    print(send_message)
 
-                invitations.append(invitation)
+                    invitations.append(invitation)
 
-        meeting_serializer = MeetingSerializer(meeting)
-        data = meeting_serializer.data
-        
-        invitation_serializer = InvitationSerializer(invitations, many=True)
-        
-        data['invitations'] = invitation_serializer.data
-        
-        return Response(data=data, status=status.HTTP_201_CREATED)
+            meeting_serializer = MeetingSerializer(meeting)
+            data = meeting_serializer.data
+            
+            invitation_serializer = InvitationSerializer(invitations, many=True)
+            
+            data['invitations'] = invitation_serializer.data
+            
+            return Response(data=data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(e)
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
     def get(self, request):
@@ -225,12 +231,39 @@ class CheckIn(APIView):
     authentication_classes = []
 
     def post(self, request, id):
-        pass
+        
+        # Insert their image
+
+        # Generate magicpass
+
+        return Response()
 
     def get(self, request, id):
         
         invitation = Invitation.objects.filter(id=id).first()
 
+        t = threading.Thread(target=send_thanks_email(invitation.visitor_email, invitation.host.email, invitation.host.google_token), args=(), kwargs={})
+        t.setDaemon(True)
+        t.start()
+
         serializer = InvitationSerializer(invitation)
 
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+    
+def send_thanks_email(to: str, sender: str, goauth):
+    time.sleep(30)
+    if not goauth:
+        return;
+    
+    creds = Credentials.from_authorized_user_info(json.loads(goauth), SCOPES)
+    
+    email_service = build('gmail', 'v1', credentials=creds)
+    create_message = thanks_email(to, sender)
+    send_message = (email_service.users().messages().send
+            (userId=sender, body=create_message).execute())
+
+
+class WalkIn(APIView):
+
+    def post(self, request):
+        pass
