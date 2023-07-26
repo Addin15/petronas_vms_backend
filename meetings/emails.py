@@ -344,9 +344,8 @@ def thanks_email(to: str, sender: str):
     </head>
 
     <body>
-        <div class="flex flex-col container mx-auto w-[35rem] border border-[#D8D8D8] my-5 rounded-2xl px-8 py-5" style="margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; display: flex; width: 35rem; flex-direction: column; border-radius: 1rem; border-width: 1px; border-color: #D8D8D8; padding-left: 32px; padding-right: 32px; padding-top: 20px; padding-bottom: 20px;">
-            <div>
-                
+        <div class="flex flex-col container mx-auto w-[35rem] border border-[#D8D8D8] my-5 rounded-2xl px-8 py-5" style="margin-left: auto; margin-right: auto; margin-top: 20px; margin-bottom: 20px; display: flex; width: 35rem; flex-direction: column; align-items: center; border-radius: 1rem; border-width: 1px; border-color: #D8D8D8; padding-left: 32px; padding-right: 32px; padding-top: 20px; padding-bottom: 20px;">
+            <div class="self-center" style="align-self: center;">
                 <div class="my-5 text-2xl font-semibold text-center" style="margin-top: 20px; margin-bottom: 20px; text-align: center; font-size: 24px; font-weight: 600;">
                     Thankyou for your visit!
                 </div>
