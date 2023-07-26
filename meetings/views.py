@@ -1,5 +1,7 @@
 from datetime import date, datetime, timedelta
 import io
+from json import JSONEncoder
+import json
 from tkinter import Image
 from django.shortcuts import render
 from django.http import HttpResponse, FileResponse
@@ -17,6 +19,8 @@ from googleapiclient.discovery import build
 from qrcode import make, QRCode
 import pytz
 
+SCOPES = ['https://www.googleapis.com/auth/calendar', 'https://mail.google.com/']
+
 # Create your views here.
 class MeetingView(APIView):
     authentication_classes = [CustomTokenAuthentication]
@@ -30,8 +34,8 @@ class MeetingView(APIView):
 
         if not goauth:
             return Response(data={'message': 'User is not authorized'}, status=status.HTTP_412_PRECONDITION_FAILED)
-
-        creds = Credentials.from_authorized_user_info(goauth, SCOPES)
+        
+        creds = Credentials.from_authorized_user_info(json.loads(goauth), SCOPES)
 
         serializer = MeetingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

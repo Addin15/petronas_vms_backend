@@ -30,7 +30,7 @@ def google_authorize(request):
     goauth = user.google_token
 
     if goauth:
-        creds = Credentials.from_authorized_user_info(goauth, SCOPES)
+        creds = Credentials.from_authorized_user_info(json.loads(goauth), SCOPES)
     
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -118,10 +118,12 @@ def redirect_google(request):
                     'credentials.json', SCOPES)
         
         flow.redirect_uri = settings.FE_HOST + '/redirect/'
-        creds = flow.fetch_token(code=data['code'])
+        flow.fetch_token(code=data['code'])
+
+        creds = flow.credentials
 
         user = request.user
-        user.google_token = json.dumps(creds)
+        user.google_token = creds.to_json()
         user.save()
     except Exception as e:
         print(e)
