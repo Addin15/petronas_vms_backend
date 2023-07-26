@@ -214,7 +214,7 @@ def confirmed_email(to:str, sender: str, invitation: Invitation):
                 <div class="my-5 text-2xl font-semibold" style="margin-top: 20px; margin-bottom: 20px; font-size: 24px; font-weight: 600;">
                     Your meeting is confirmed.
                 </div>
-                <div class="flex flex-col items-center px-8 py-5 bg-[#EBF7F6] rounded-xl text-center mb-5" style="margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; border-radius: 0.75rem; background-color: #EBF7F6; padding-left: 32px; padding-right: 32px; padding-top: 20px; padding-bottom: 20px; text-align: center;">
+                <div class="flex flex-col items-center px-8 py-5 bg-[#EBF7F6] rounded-xl text-center mb-5" style="margin-bottom: 20px; display: flex; align-items: center; border-radius: 0.75rem; background-color: #EBF7F6; padding-left: 32px; padding-right: 32px; padding-top: 20px; padding-bottom: 20px; text-align: center; flex-direction: column">
                     <div class="text-sm text-[#808080] font-semibold mb-2" style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #808080;">SKIP THE QUEUE</div>
                     <div class="text-xl font-semibold mb-4" style="margin-bottom: 16px; font-size: 20px; font-weight: 600;">Show this QR at the lobby</div>
                     <div class="rounded-2xl" style="border-radius: 1rem;">
