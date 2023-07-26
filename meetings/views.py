@@ -175,7 +175,7 @@ class InvitationView(APIView):
         if not goauth:
             return Response(data={'message': 'User is not authorized'}, status=status.HTTP_412_PRECONDITION_FAILED)
 
-        creds = Credentials.from_authorized_user_info(goauth, SCOPES)
+        creds = Credentials.from_authorized_user_info(json.loads(goauth), SCOPES)
 
         email_service = build('gmail', 'v1', credentials=creds)
         create_message = confirmed_email(invitation.visitor_email, invitation.host.email, invitation)
@@ -216,6 +216,9 @@ def generate_qr(request, id):
     if not invitation:
         return Response(data={'message':'Invitation ID not found'}, status=status.HTTP_404_NOT_FOUND)
     
+    if not invitation.is_preregistered:
+        return Response(data={'message':'Not pre-registered'}, status=status.HTTP_412_PRECONDITION_FAILED)
+
     qr = QRCode()
     qr.add_data(str(invitation.id))
 
@@ -242,16 +245,21 @@ class CheckIn(APIView):
         
         invitation = Invitation.objects.filter(id=id).first()
 
-        t = threading.Thread(target=send_thanks_email(invitation.visitor_email, invitation.host.email, invitation.host.google_token), args=(), kwargs={})
-        t.setDaemon(True)
-        t.start()
+        if invitation.in_time is not None:
+            invitation.out_time = time.strftime("%H:%M:%S", time.localtime())
+            invitation.save()
+            serializer = InvitationSerializer(invitation)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        
 
+        send_thanks_email(invitation.visitor_email, invitation.host.email, invitation.host.google_token)
+        invitation.in_time = time.strftime("%H:%M:%S", time.localtime())
+        invitation.save()
         serializer = InvitationSerializer(invitation)
 
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     
 def send_thanks_email(to: str, sender: str, goauth):
-    time.sleep(30)
     if not goauth:
         return;
     
