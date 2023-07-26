@@ -354,7 +354,7 @@ def thanks_email(to: str, sender: str):
                     We hope to see you again. Here’s your unique Petronas MagicPass.
                 </div>
                 <div class="flex justify-center" style="display: flex; justify-content: center;">
-                    <img src="https://imgur.com/WeJWvTe" width="250px">
+                    <img src="https://i.imgur.com/WeJWvTe.png" width="250px">
                 </div>
                 <div class="flex justify-center items-center pb-5 mb-2 w-full" style="margin-bottom: 8px; display: flex; width: 100%; align-items: center; justify-content: center; padding-bottom: 20px;">
                     <div>
@@ -385,7 +385,7 @@ def thanks_email(to: str, sender: str):
                 <div class="font-bold text-xl mb-4" style="margin-bottom: 16px; font-size: 20px; font-weight: 700;">Recommendations for you</div>
                 <div class="py-4 flex justify-stretch h-[35vh] items-stretch" style="display: flex; height: 35vh; align-items: stretch; justify-content: stretch; padding-top: 16px; padding-bottom: 16px;">
                     <div class="w-full" style="width: 100%;">
-                        <img src="https://imgur.com/hVpsGVE">
+                        <img src="https://i.imgur.com/hVpsGVE.png">
                     </div>
                     <div class="font-semibold h-full w-full" style="height: 100%; width: 100%; font-weight: 600;">
                         <div class="text-sm font-semibold text-[#808080] mb-2" style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #808080;">DONATE</div>
@@ -403,12 +403,12 @@ def thanks_email(to: str, sender: str):
                         <button class="text-sm font-semibold text-[#808080] mb-2" style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #808080;">Get it now</button>
                     </div>
                     <div class="w-full" style="width: 100%;">
-                        <img src="https://imgur.com/gZlAw0t">
+                        <img src="https://i.imgur.com/gZlAw0t.png">
                     </div>
                 </div>
                 <div class="py-4 flex justify-stretch h-[35vh] items-stretch" style="display: flex; height: 35vh; align-items: stretch; justify-content: stretch; padding-top: 16px; padding-bottom: 16px;">
                     <div class="w-full" style="width: 100%;">
-                        <img src="https://imgur.com/gdWN4Yp">
+                        <img src="https://i.imgur.com/gdWN4Yp.png">
                     </div>
                     <div class="font-semibold h-full w-full" style="height: 100%; width: 100%; font-weight: 600;">
                         <div class="text-sm font-semibold text-[#808080] mb-2" style="margin-bottom: 8px; font-size: 14px; font-weight: 600; color: #808080;">LIMITED EDITION</div>
@@ -421,7 +421,7 @@ def thanks_email(to: str, sender: str):
                 <div class="text-sm mb-2 text-[#505050]" style="margin-bottom: 8px; font-size: 14px; color: #505050;">Refuel and pay for parking, shopping, motor insurance, charge EV, and more.</div>
                 <div class="text-sm mb-4 text-[#505050]" style="margin-bottom: 16px; font-size: 14px; color: #505050;"><a class="font-semibold" style="font-weight: 600;">For a limited time only:</a> Register with C-FUEL to enjoy RM5 cashback for your first cumulative RM20 on fuel purchase.</div>
                 <div>
-                    <img src="https://imgur.com/OVrIRFp">
+                    <img src="https://i.imgur.com/OVrIRFp.png">
                 </div>
             </div>
         </div>
